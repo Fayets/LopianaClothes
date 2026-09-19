@@ -41,18 +41,18 @@ Al final decime, concretamente:
 
 ---
 
-## Prompt 2 — Subir el código (se corre en la Mac, no en el VPS)
+## Prompt 2 — Bajar el código al VPS
 
-Reemplazá `USUARIO@IP` por lo tuyo. Esto lo corrés vos desde la terminal de tu Mac:
-
-```bash
-rsync -avz --delete \
-  --exclude 'data/' --exclude 'media/' --exclude '__pycache__/' --exclude '.DS_Store' \
-  ~/Desktop/LopianaClothes/ USUARIO@IP:/srv/lopiana/
 ```
+Cloná https://github.com/Fayets/LopianaClothes.git en /srv/lopiana de este VPS.
 
-`data/` y `media/` quedan excluidos a propósito: son la base y las fotos del servidor.
-Si los mandaras, pisarías los pedidos y el stock reales con los de tu máquina.
+`data/` y `media/` no están en el repositorio a propósito: son la base de datos con los
+pedidos y las fotos que sube la clienta, y viven solo en el servidor. Si el directorio ya
+existe con esas carpetas adentro, NO las borres: cloná en otro lado y movés solo el
+código, o hacé `git pull` sobre lo que ya está.
+
+Si el repositorio es privado y no tenés credenciales, avisame antes de intentar nada.
+```
 
 ---
 
@@ -275,13 +275,17 @@ Errores frecuentes:
 
 ## Actualizar la tienda más adelante
 
-Desde la Mac:
+Desde la Mac, pushear los cambios:
 
 ```bash
-rsync -avz --delete \
-  --exclude 'data/' --exclude 'media/' --exclude '__pycache__/' --exclude '.DS_Store' \
-  ~/Desktop/LopianaClothes/ USUARIO@IP:/srv/lopiana/
-ssh USUARIO@IP 'chown -R lopiana:lopiana /srv/lopiana && systemctl restart lopiana'
+cd ~/Desktop/LopianaClothes && git add -A && git commit -m "lo que cambió" && git push
 ```
 
-El esquema de la base se migra solo al arrancar. `data/` y `media/` nunca se tocan.
+Y en el VPS:
+
+```bash
+cd /srv/lopiana && git pull && chown -R lopiana:lopiana /srv/lopiana && systemctl restart lopiana
+```
+
+El esquema de la base se migra solo al arrancar. `data/` y `media/` nunca se tocan porque
+no están versionados.
