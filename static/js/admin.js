@@ -13,7 +13,7 @@
     return data;
   }
 
-  let days = 30, month = null, statusFilter = "", products = [], editing = null, settingsCache = {};
+  let days = 30, month = null, statusFilter = "", products = [], editing = null, settingsCache = {}, cats = [];
   const MESES = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
 
   // ---------------- login
@@ -106,6 +106,7 @@
   // ---------------- productos
   async function loadProducts() {
     products = await api("/api/admin/products");
+    if (!cats.length) cats = await api("/api/admin/categories").catch(() => []);
     const list = $("#plist");
     if (!products.length) { list.innerHTML = `<div class="empty">Todavía no hay prendas. Creá la primera con <b>+ Nueva prenda</b>.</div>`; return; }
     list.innerHTML = products.map(p => `<div class="prow" data-id="${p.id}">
@@ -139,7 +140,15 @@
   function openEditor(p) {
     editing = p; const f = $("#editorForm");
     $("#editorTitle").textContent = p ? p.name : "Nueva prenda";
-    f.name.value = p ? p.name : ""; f.category.value = p ? p.category : ""; f.price.value = p ? p.price : ""; f.transfer_price.value = p && p.transfer_price ? p.transfer_price : "";
+    f.name.value = p ? p.name : "";
+    const actual = p ? p.category : "";
+    // Si una prenda vieja tiene una categoría que ya no está en la lista, se agrega como
+    // opción para no cambiársela en silencio al guardar.
+    const opciones = cats.map(c => c.name);
+    if (actual && !opciones.includes(actual)) opciones.push(actual);
+    f.category.innerHTML = `<option value="">— Sin categoría —</option>` +
+      opciones.map(n => `<option value="${n.replace(/"/g, "&quot;")}"${n === actual ? " selected" : ""}>${n}</option>`).join("");
+    $("#catHint").hidden = opciones.length > 0 && cats.length > 0; f.price.value = p ? p.price : ""; f.transfer_price.value = p && p.transfer_price ? p.transfer_price : "";
     f.description.value = p ? p.description : ""; f.active.checked = p ? !!p.active : true;
     $("#sizesRows").innerHTML = ""; (p ? p.sizes : [{ size: "S", stock: 1 }, { size: "M", stock: 1 }, { size: "L", stock: 1 }]).forEach(s => $("#sizesRows").appendChild(sizeRow(s.size, s.stock)));
     $("#colorRows").innerHTML = ""; (p ? p.colors : []).forEach(c => $("#colorRows").appendChild(colorRow(c.name, c.hex)));
@@ -244,8 +253,58 @@
     });
   }
 
+  // ---------------- categorías
+  function catRow(c = { name: "", products: 0 }) {
+    const d = document.createElement("div");
+    d.className = "srow catrow";
+    d.dataset.id = c.id ?? "";
+    d.innerHTML = `<input value="${(c.name || "").replace(/"/g, "&quot;")}" maxlength="60" placeholder="Nombre de la categoría">
+      <span class="cat-count">${c.products ? `${c.products} prenda${c.products === 1 ? "" : "s"}` : "vacía"}</span>
+      <button type="button" data-mv="-1" title="Subir">↑</button>
+      <button type="button" data-mv="1" title="Bajar">↓</button>
+      <button type="button" class="rm" title="Quitar">×</button>`;
+    d.querySelector(".rm").onclick = () => {
+      if (c.products) { toast(`«${c.name}» tiene ${c.products} prenda${c.products === 1 ? "" : "s"}. Movelas antes de borrarla.`); return; }
+      d.remove();
+    };
+    d.querySelectorAll("[data-mv]").forEach(b => b.onclick = () => {
+      const dir = +b.dataset.mv, sib = dir < 0 ? d.previousElementSibling : d.nextElementSibling;
+      if (!sib) return;
+      dir < 0 ? d.parentNode.insertBefore(d, sib) : d.parentNode.insertBefore(sib, d);
+    });
+    return d;
+  }
+  function renderCats() {
+    const wrap = $("#catRows"); wrap.innerHTML = "";
+    if (!cats.length) wrap.innerHTML = `<p class="muted small">Todavía no hay categorías. Agregá la primera.</p>`;
+    cats.forEach(c => wrap.appendChild(catRow(c)));
+  }
+  async function loadCats() {
+    cats = await api("/api/admin/categories");
+    renderCats();
+  }
+  $("#addCat").onclick = () => {
+    if ($("#catRows .muted")) $("#catRows").innerHTML = "";
+    $("#catRows").appendChild(catRow());
+    $("#catRows").lastElementChild.querySelector("input").focus();
+  };
+  $("#catsForm").onsubmit = async (e) => {
+    e.preventDefault(); const err = $("#catsErr"); err.hidden = true;
+    const body = $$("#catRows .catrow").map(r => {
+      const name = r.children[0].value.trim();
+      return r.dataset.id ? { id: +r.dataset.id, name } : { name };
+    }).filter(c => c.name);
+    try {
+      cats = await api("/api/admin/categories", { method: "PUT", body: JSON.stringify({ categories: body }) });
+      await loadCats();
+      toast("Categorías guardadas");
+    } catch (ex) { err.textContent = ex.message; err.hidden = false; }
+  };
+
   // ---------------- ajustes
   async function loadSettings() {
+    await loadCats();
+    refreshEventsCount();
     settingsCache = await api("/api/admin/settings");
     const f = $("#settingsForm"); Object.entries(settingsCache).forEach(([k, v]) => { if (f[k]) f[k].value = v; });
   }
@@ -253,6 +312,23 @@
     e.preventDefault(); const f = $("#settingsForm"); const body = {}; [...f.elements].forEach(el => { if (el.name) body[el.name] = el.value; });
     try { await api("/api/admin/settings", { method: "PUT", body: JSON.stringify(body) }); toast("Ajustes guardados"); loadSettings(); } catch (ex) { toast(ex.message); }
   };
+
+  $("#resetMetrics").onclick = async () => {
+    const s = await api("/api/admin/stats?days=3650").catch(() => null);
+    const total = s ? s.visitas + s.vistas_producto + s.lo_quiero : 0;
+    if (!confirm(`¿Borrar todo el historial de métricas?\n\nSe pierden las visitas, las vistas de prenda y los agregados al carrito acumulados hasta hoy. Los pedidos, el stock y las prendas quedan intactos.\n\nNo se puede deshacer.`)) return;
+    const r = await api("/api/admin/reset-metrics", { method: "POST" });
+    toast(`Métricas borradas (${r.deleted} registros)`);
+    await refreshEventsCount();
+  };
+  async function refreshEventsCount() {
+    const el = $("#eventsCount");
+    try {
+      const s = await api("/api/admin/stats?days=3650");
+      const n = s.visitas + s.vistas_producto + s.lo_quiero;
+      el.textContent = n ? `Hoy hay ${s.vistas_producto} vistas de prenda y ${s.lo_quiero} agregados al carrito acumulados.` : "No hay métricas acumuladas.";
+    } catch { el.textContent = ""; }
+  }
 
   $("#pinForm").onsubmit = async (e) => {
     e.preventDefault(); const f = $("#pinForm"), err = $("#pinErr"); err.hidden = true;

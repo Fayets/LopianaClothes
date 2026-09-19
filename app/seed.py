@@ -3,7 +3,7 @@ Solo crea los productos cuyo slug no exista todavía: se puede correr las veces 
 import json
 
 from . import images as imgproc
-from .db import BASE_DIR, get_db, init_db
+from .db import BASE_DIR, get_db, init_db, seed_categories
 
 SEED_IMG = BASE_DIR / "seed_img"
 
@@ -37,6 +37,9 @@ def run() -> None:
                     (pid, info["filename"], info["thumb"], info["original"], info["width"], info["height"], pos),
                 )
             print(f"cargado: {p['name']} ({p['category']})")
+        # init_db corrió con la base vacía, así que la lista de categorías se arma acá,
+        # una vez que ya existen las prendas de donde salen.
+        seed_categories(con)
     print("seed listo")
 
 

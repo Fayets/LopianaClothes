@@ -37,6 +37,11 @@ CREATE TABLE IF NOT EXISTS product_images (
   kind TEXT NOT NULL DEFAULT 'gallery',
   created_at TEXT NOT NULL DEFAULT (datetime('now','localtime'))
 );
+CREATE TABLE IF NOT EXISTS categories (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  position INTEGER NOT NULL DEFAULT 0
+);
 CREATE TABLE IF NOT EXISTS product_colors (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   product_id INTEGER NOT NULL REFERENCES products(id) ON DELETE CASCADE,
@@ -156,6 +161,7 @@ def _migrate(con) -> None:
         con.execute("ALTER TABLE product_images ADD COLUMN kind TEXT NOT NULL DEFAULT 'gallery'")
     if "color" not in cols("order_items"):
         con.execute("ALTER TABLE order_items ADD COLUMN color TEXT")
+    seed_categories(con)
     # el PIN dejó de guardarse en claro: si quedaba uno viejo, se hashea y se borra
     old = con.execute("SELECT value FROM settings WHERE key = 'admin_pin'").fetchone()
     if old:
@@ -208,6 +214,23 @@ def get_db():
         raise
     finally:
         con.close()
+
+
+def seed_categories(con) -> None:
+    """La primera vez, la lista de categorías sale de lo que ya tienen cargado las prendas.
+    Después manda la tabla: si se vacía a propósito, no se vuelve a llenar sola."""
+    if con.execute("SELECT 1 FROM settings WHERE key = 'categories_initialized'").fetchone():
+        return
+    existing = [r["category"] for r in con.execute(
+        "SELECT DISTINCT category FROM products WHERE category != '' ORDER BY sort_order, id")]
+    for pos, name in enumerate(existing):
+        con.execute("INSERT INTO categories(name, position) VALUES (?, ?)", (name, pos))
+    if existing:
+        con.execute("INSERT INTO settings(key, value) VALUES ('categories_initialized', '1')")
+
+
+def get_categories(con) -> list[dict]:
+    return [dict(r) for r in con.execute("SELECT id, name, position FROM categories ORDER BY position, id")]
 
 
 def get_settings(con) -> dict:

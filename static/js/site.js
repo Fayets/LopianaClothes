@@ -8,12 +8,18 @@
   const sessionId = store.get("lp_session", null) || (() => { const id = Math.random().toString(36).slice(2) + Date.now().toString(36); store.set("lp_session", id); return id; })();
   const track = (type, extra = {}) => fetch("/api/events", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ type, session_id: sessionId, ...extra }), keepalive: true }).catch(() => {});
 
-  let settings = {}, products = [], current = null, size = null, color = null, qty = 1;
+  let settings = {}, products = [], catalogCats = [], current = null, size = null, color = null, qty = 1;
   let category = "", sizeFilter = new Set(), priceFilter = new Set(), sort = "featured", query = "";
   let cart = store.get("lp_cart", []);
   const waUrl = (text) => `https://wa.me/${settings.whatsapp_number}?text=${encodeURIComponent(text)}`;
   const toast = (msg) => { const t = $("#toast"); t.textContent = msg; t.hidden = false; clearTimeout(toast.t); toast.t = setTimeout(() => (t.hidden = true), 2200); };
-  const categories = () => [...new Set(products.map(p => p.category).filter(Boolean))];
+  const categories = () => {
+    const conPrendas = new Set(products.map(p => p.category).filter(Boolean));
+    const ordenadas = catalogCats.filter(c => conPrendas.has(c));
+    // Por si quedó alguna prenda con una categoría que ya no está en la lista de Ajustes.
+    const sueltas = [...conPrendas].filter(c => !catalogCats.includes(c));
+    return [...ordenadas, ...sueltas];
+  };
 
   // ---------------- menú, barra lateral, footer
   function renderNav() {
@@ -206,7 +212,11 @@
 
   // ---------------- carga
   async function loadProducts() {
-    products = await (await fetch("/api/products")).json();
+    const [prods, cs] = await Promise.all([
+      fetch("/api/products").then(r => r.json()),
+      fetch("/api/categories").then(r => r.json()).catch(() => []),
+    ]);
+    products = prods; catalogCats = cs;
     renderNav(); renderGrid();
     if (current) { const p = products.find(x => x.id === current.id); if (p) { current = p; if (!$("#pdp").hidden) { const s = size; renderSizes(); size = s; renderSizes(); } } }
   }

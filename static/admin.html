@@ -86,6 +86,16 @@
     <!-- AJUSTES -->
     <section data-panel="ajustes" hidden>
       <div class="head"><h1>Ajustes</h1></div>
+
+      <form class="card form" id="catsForm">
+        <h3>Categorías</h3>
+        <p class="muted">Las que aparecen en el menú de la tienda, en los filtros y en el pie. <b>El orden de acá es el orden que se ve.</b> Una categoría sin prendas no se muestra en la tienda hasta que le cargues alguna.</p>
+        <div id="catRows"></div>
+        <button type="button" class="link" id="addCat">+ agregar categoría</button>
+        <p class="err" id="catsErr" hidden></p>
+        <button class="btn btn-dark" type="submit">Guardar categorías</button>
+      </form>
+
       <form class="card form" id="settingsForm">
         <label>Nombre de la marca<input name="brand_name"></label>
         <label>WhatsApp (solo números, con 549)<input name="whatsapp_number" placeholder="5491154845533"></label>
@@ -102,6 +112,14 @@
         <p class="muted">Las fotos de producto se convierten a 1200 × 1600 px (formato 3:4). La tabla de talles conserva su proporción.</p>
         <button class="btn btn-dark" type="submit">Guardar ajustes</button>
       </form>
+
+      <div class="card danger-card">
+        <h3>Empezar a contar de cero</h3>
+        <p class="muted">Borra el historial de <b>visitas, vistas de prenda y agregados al carrito</b>. Sirve para que las pruebas no ensucien las métricas reales.</p>
+        <p class="muted small">No toca pedidos, stock, prendas ni suscriptoras. Para sacar un pedido de prueba, cancelalo desde <b>Pedidos</b>: así el stock vuelve.</p>
+        <p class="stat-now" id="eventsCount"></p>
+        <button class="btn btn-danger" type="button" id="resetMetrics">Borrar métricas</button>
+      </div>
 
       <form class="card form" id="pinForm">
         <h3>PIN de acceso</h3>
@@ -122,7 +140,7 @@
   <form id="editorForm" class="editor">
     <div class="ecol">
       <label>Nombre<input name="name" required placeholder="CAMPERA ..."></label>
-      <label>Categoría<input name="category" list="cats" placeholder="SACOS & CAMPERAS"><datalist id="cats"><option>SACOS & CAMPERAS</option><option>VESTIDOS</option><option>TOPS</option><option>PANTALONES</option><option>SALE</option></datalist></label>
+      <label>Categoría<select name="category" id="catSelect"></select><small id="catHint" class="muted">Se administran en <b>Ajustes → Categorías</b>.</small></label>
       <div class="row2">
         <label>Precio de lista<input name="price" type="number" min="0" step="1" required></label>
         <label>Precio con transferencia <small>vacío = descuento automático</small><input name="transfer_price" type="number" min="0" step="1" placeholder="auto"></label>

@@ -154,6 +154,18 @@ button,input,select,textarea{font-family:inherit;font-size:14px}
 .chart-acts{display:flex;gap:16px;margin-top:8px}
 .chart-acts .danger{color:#b3261e}
 
+/* ---------------------------------------------------------------- categorías */
+.catrow{grid-template-columns:minmax(0,1fr) auto auto auto auto;align-items:center}
+.catrow .cat-count{font-size:12px;color:var(--gris);white-space:nowrap;padding:0 4px}
+.catrow [data-mv]{font-size:15px;color:var(--gris);padding:0 5px}
+.catrow .rm{font-size:20px;color:var(--gris)}
+.catrow [data-mv]:hover,.catrow .rm:hover{color:var(--negro)}
+
+/* ---------------------------------------------------------------- zona sensible */
+.danger-card{border-color:#e6c9c6}
+.danger-card h3{color:#b3261e}
+.stat-now{font-size:13px;color:var(--gris);margin:10px 0 14px}
+
 /* ---------------------------------------------------------------- barra inferior (mobile) */
 .tabbar{display:none}
 
@@ -194,6 +206,8 @@ button,input,select,textarea{font-family:inherit;font-size:14px}
   .login-card input,.form input,.form select,.editor input,.editor textarea,.editor select,.srow input,.orow input,.orow select{font-size:16px}
   .srow{grid-template-columns:minmax(0,1fr) 88px auto;gap:6px}
   .crow{grid-template-columns:minmax(0,1fr) 58px auto}
+  .catrow{grid-template-columns:minmax(0,1fr) auto auto auto;row-gap:2px}
+  .catrow .cat-count{grid-column:1/-1;order:9;font-size:11px}
   .srow button{font-size:24px;padding:0 6px}
   .thumbs{grid-template-columns:repeat(auto-fill,minmax(130px,1fr))}
   .drop{padding:18px 14px}

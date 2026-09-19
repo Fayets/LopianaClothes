@@ -18,7 +18,7 @@ from pydantic import BaseModel, Field
 
 from . import images as imgproc
 from . import security as sec
-from .db import BASE_DIR, get_db, get_settings, init_db, rows, set_setting
+from .db import BASE_DIR, get_categories, get_db, get_settings, init_db, rows, seed_categories, set_setting
 
 MEDIA_DIR = BASE_DIR / "media"
 PRODUCTS_MEDIA = MEDIA_DIR / "products"
@@ -228,6 +228,13 @@ def admin_change_pin(body: NewPinIn, request: Request, response: Response, _: bo
 def api_public_settings():
     with get_db() as con:
         return public_settings(get_settings(con))
+
+
+@app.get("/api/categories")
+def api_categories():
+    """El orden del menú de la tienda sale de acá, no del orden en que se cargaron las prendas."""
+    with get_db() as con:
+        return [c["name"] for c in get_categories(con)]
 
 
 @app.get("/api/products")
@@ -450,6 +457,63 @@ def admin_events(limit: int = 100, _: bool = Depends(require_admin)):
             "SELECT e.*, p.name AS product_name FROM events e LEFT JOIN products p ON p.id = e.product_id ORDER BY e.id DESC LIMIT ?", (min(limit, 500),)))
 
 
+# ---------------------------------------------------------------- admin: categorías
+class CategoryIn(BaseModel):
+    id: Optional[int] = None
+    name: str = Field(min_length=1, max_length=60)
+
+
+class CategoriesIn(BaseModel):
+    categories: list[CategoryIn] = Field(default=[], max_length=40)
+
+
+@app.get("/api/admin/categories")
+def admin_categories(_: bool = Depends(require_admin)):
+    with get_db() as con:
+        cats = get_categories(con)
+        counts = {r["category"]: r["n"] for r in con.execute(
+            "SELECT category, COUNT(*) n FROM products GROUP BY category")}
+        for c in cats:
+            c["products"] = counts.get(c["name"], 0)
+        return cats
+
+
+@app.put("/api/admin/categories")
+def admin_save_categories(body: CategoriesIn, _: bool = Depends(require_admin)):
+    """Guarda la lista completa y en orden. Una fila con id es una que ya existía: si le
+    cambió el nombre, las prendas que la usaban se renombran con ella para no quedar
+    huérfanas. Una fila sin id es nueva. Las que faltan se borran, salvo que tengan
+    prendas adentro."""
+    with get_db() as con:
+        existing = {r["id"]: r["name"] for r in con.execute("SELECT id, name FROM categories")}
+        keep, seen = set(), set()
+        for pos, c in enumerate(body.categories):
+            name = " ".join(c.name.split())
+            if not name:
+                continue
+            if name.lower() in seen:
+                raise HTTPException(400, f"«{name}» está repetida en la lista.")
+            seen.add(name.lower())
+            if c.id is not None and c.id in existing:
+                old = existing[c.id]
+                con.execute("UPDATE categories SET name = ?, position = ? WHERE id = ?", (name, pos, c.id))
+                if old != name:
+                    con.execute("UPDATE products SET category = ? WHERE category = ?", (name, old))
+                keep.add(c.id)
+            else:
+                cur = con.execute("INSERT INTO categories(name, position) VALUES (?, ?)", (name, pos))
+                keep.add(cur.lastrowid)
+        for cid, name in existing.items():
+            if cid in keep:
+                continue
+            n = con.execute("SELECT COUNT(*) FROM products WHERE category = ?", (name,)).fetchone()[0]
+            if n:
+                raise HTTPException(400, f"No se puede borrar «{name}»: tiene {n} prenda{'' if n == 1 else 's'}. Movelas a otra categoría primero.")
+            con.execute("DELETE FROM categories WHERE id = ?", (cid,))
+        set_setting(con, "categories_initialized", "1")
+        return get_categories(con)
+
+
 # ---------------------------------------------------------------- admin: productos
 class SizeIn(BaseModel):
     size: str = Field(max_length=20)
@@ -478,9 +542,22 @@ def admin_products(_: bool = Depends(require_admin)):
         return load_products(con, only_active=False)
 
 
+def _check_category(con, category: str) -> str:
+    """La categoría ya no es texto libre: tiene que existir en Ajustes. Vacía se acepta
+    (la prenda no aparece en ningún filtro del menú, pero sí en Novedades)."""
+    category = " ".join(category.split())
+    if not category:
+        return ""
+    names = {c["name"] for c in get_categories(con)}
+    if category not in names:
+        raise HTTPException(400, f"La categoría «{category}» no existe. Creala primero en Ajustes.")
+    return category
+
+
 @app.post("/api/admin/products")
 def admin_create_product(body: ProductIn, _: bool = Depends(require_admin)):
     with get_db() as con:
+        category = _check_category(con, body.category)
         base = slugify(body.name)
         slug, i = base, 2
         while con.execute("SELECT 1 FROM products WHERE slug = ?", (slug,)).fetchone():
@@ -488,7 +565,7 @@ def admin_create_product(body: ProductIn, _: bool = Depends(require_admin)):
         order = (con.execute("SELECT COALESCE(MAX(sort_order),0) FROM products").fetchone()[0] or 0) + 1
         cur = con.execute(
             "INSERT INTO products(slug, name, description, category, price, transfer_price, active, sort_order) VALUES (?,?,?,?,?,?,?,?)",
-            (slug, body.name.strip(), body.description, body.category.strip(), body.price, body.transfer_price or None, int(body.active), order),
+            (slug, body.name.strip(), body.description, category, body.price, body.transfer_price or None, int(body.active), order),
         )
         pid = cur.lastrowid
         _save_sizes(con, pid, body.sizes)
@@ -535,9 +612,10 @@ def admin_update_product(pid: int, body: ProductIn, _: bool = Depends(require_ad
     with get_db() as con:
         if not con.execute("SELECT 1 FROM products WHERE id = ?", (pid,)).fetchone():
             raise HTTPException(404, "No existe")
+        category = _check_category(con, body.category)
         con.execute(
             "UPDATE products SET name=?, description=?, category=?, price=?, transfer_price=?, active=?, updated_at=datetime('now','localtime') WHERE id=?",
-            (body.name.strip(), body.description, body.category.strip(), body.price, body.transfer_price or None, int(body.active), pid),
+            (body.name.strip(), body.description, category, body.price, body.transfer_price or None, int(body.active), pid),
         )
         _save_sizes(con, pid, body.sizes)
         _save_colors(con, pid, body.colors)
@@ -784,6 +862,17 @@ def admin_put_settings(body: dict, _: bool = Depends(require_admin)):
                     v = re.sub(r"\D", "", v)
                 set_setting(con, k, v)
     return {"ok": True}
+
+
+@app.post("/api/admin/reset-metrics")
+def admin_reset_metrics(_: bool = Depends(require_admin)):
+    """Borra el historial de visitas, vistas de prenda y agregados al carrito: sirve para
+    arrancar a contar limpio después de las pruebas. NO toca pedidos, stock, prendas ni
+    suscriptoras del newsletter, que son registros del negocio y no métricas."""
+    with get_db() as con:
+        n = con.execute("SELECT COUNT(*) FROM events").fetchone()[0]
+        con.execute("DELETE FROM events")
+    return {"ok": True, "deleted": n}
 
 
 # ---------------------------------------------------------------- páginas y estáticos
