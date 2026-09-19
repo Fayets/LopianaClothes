@@ -1,0 +1,24 @@
+# La tienda entra a la MISMA red que el nginx que ya sirve Coquetines, así nginx la
+# resuelve por nombre (proxy_pass http://lopiana:8020) y no dependemos de IPs internas
+# que Docker puede renumerar al recrear un contenedor.
+
+services:
+  lopiana:
+    build: .
+    container_name: lopiana
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      # Bind mounts, no volúmenes de Docker: los pedidos y las fotos quedan en el host,
+      # a la vista, y el script de respaldo los toma sin tener que entrar al contenedor.
+      - ./data:/app/data
+      - ./media:/app/media
+    networks:
+      - proxy
+    expose:
+      - "8020"
+
+networks:
+  proxy:
+    name: coquetines_default
+    external: true

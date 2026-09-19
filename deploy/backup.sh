@@ -3,12 +3,17 @@
 # Instalar en cron:  0 4 * * * /srv/lopiana/deploy/backup.sh >> /var/log/lopiana-backup.log 2>&1
 set -euo pipefail
 
-APP=/srv/lopiana
-DEST=/srv/backups/lopiana
+APP=${LOPIANA_APP:-/home/deploy/apps/LopianaClothes}
+DEST=${LOPIANA_BACKUPS:-/srv/backups/lopiana}
 KEEP_DAYS=30
 STAMP=$(date +%F_%H%M)
 
 mkdir -p "$DEST"
+
+if [ ! -f "$APP/data/lopiana.db" ]; then
+  echo "[$(date +%F\ %T)] ERROR: no encuentro $APP/data/lopiana.db" >&2
+  exit 1
+fi
 
 # sqlite3 .backup copia en caliente sin corromper la base ni bloquear la tienda.
 sqlite3 "$APP/data/lopiana.db" ".backup '$DEST/lopiana_$STAMP.db'"

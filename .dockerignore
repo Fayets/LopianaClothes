@@ -1,0 +1,10 @@
+# seed_img/ SÍ entra: app/seed.py lo necesita para la carga inicial del catálogo.
+data/
+media/
+.venv/
+__pycache__/
+*.pyc
+.git/
+.env
+.DS_Store
+deploy/
