@@ -1,0 +1,32 @@
+# Caddy resuelve HTTPS solo: pide el certificado a Let's Encrypt y lo renueva.
+# Copiar a /etc/caddy/Caddyfile, reemplazar el dominio y el mail, y recargar:
+#   caddy reload --config /etc/caddy/Caddyfile
+
+lopianaclothes.com, www.lopianaclothes.com {
+	encode zstd gzip
+
+	# El panel no se cachea nunca y no se deja incrustar en un iframe ajeno.
+	@admin path /admin /api/admin/*
+	header @admin Cache-Control "no-store"
+
+	# Las fotos ya vienen con nombre único: se pueden cachear fuerte.
+	@media path /media/*
+	header @media Cache-Control "public, max-age=2592000"
+
+	# Subir una foto de celular puede pasar los 10 MB por defecto.
+	request_body {
+		max_size 30MB
+	}
+
+	reverse_proxy 127.0.0.1:8020 {
+		header_up X-Forwarded-Proto {scheme}
+		header_up X-Forwarded-For {remote_host}
+	}
+
+	log {
+		output file /var/log/caddy/lopiana.log {
+			roll_size 20mb
+			roll_keep 10
+		}
+	}
+}

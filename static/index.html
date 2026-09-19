@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lopiana Clothes · Ropa de diseño, hecha a mano</title>
+<meta name="description" content="Ropa de diseño exclusiva, intervenida a mano. Camperas, sacos, pantalones y tops. Envíos gratis a CABA y a todo el país. Pedidos por WhatsApp.">
+<link rel="icon" href="/static/img/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/css/site.css?v={{v}}">
+</head>
+<body>
+
+<header class="header" id="header">
+  <div class="announce" id="bannerText"></div>
+  <div class="head-main">
+    <div class="head-left">
+      <button class="icon-btn burger" id="burger" aria-label="Menú"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+      <button class="icon-btn" id="searchBtn" aria-label="Buscar"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg></button>
+      <form class="search" id="searchForm" hidden><input id="searchInput" type="search" placeholder="Buscar prendas" autocomplete="off"></form>
+    </div>
+    <a class="logo" href="/" data-home aria-label="Lopiana Clothes"><span class="logo-word">LOPIANA</span><span class="logo-sub">CLOTHES</span></a>
+    <div class="head-right">
+      <a class="icon-btn" id="headerWa" href="#" target="_blank" rel="noopener" aria-label="WhatsApp"><svg viewBox="0 0 24 24" width="19" height="19" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.3-.4.7-1.3.1-.2 0-.3 0-.5l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.8c.1.2 1.9 2.9 4.6 4.1 1.7.7 2.4.8 3.2.7.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2-.1-.2-.3-.2-.5-.3z"/></svg></a>
+      <button class="icon-btn cart-btn" id="cartBtn" aria-label="Abrir carrito"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7h12l1 13H5L6 7z"/><path d="M9 10V6a3 3 0 0 1 6 0v4"/></svg><span class="cart-count" id="cartCount">0</span></button>
+    </div>
+  </div>
+  <nav class="nav" id="nav">
+    <a href="/" data-home data-cat="">Inicio</a>
+    <!-- categorías dinámicas -->
+    <a href="/#nosotras" class="nav-sec" data-home>Nosotras</a>
+    <a href="/#como-comprar" class="nav-sec" data-home>Cómo comprar</a>
+    <a href="/#contacto" class="nav-sec" data-home>Contacto</a>
+  </nav>
+</header>
+
+<div class="mnav-backdrop" id="mnavBackdrop" hidden></div>
+<nav class="mnav" id="mnav" aria-hidden="true">
+  <div class="mnav-head"><span class="logo-word small">LOPIANA</span><button class="icon-btn" id="mnavClose" aria-label="Cerrar">×</button></div>
+  <div class="mnav-links" id="mnavLinks"></div>
+  <div class="mnav-foot"><a id="mnavWa" href="#" target="_blank" rel="noopener">WhatsApp</a><a id="mnavIg" href="#" target="_blank" rel="noopener">Instagram</a></div>
+</nav>
+
+<main id="top">
+<div id="home">
+
+  <section class="slider" id="slider">
+    <div class="slides"><div class="slide"><img src="/static/img/hero.jpg?v={{v}}" alt="Lopiana Clothes · nueva temporada" fetchpriority="high"></div></div>
+  </section>
+
+  <section class="banners">
+    <a class="banner" href="/#tienda" data-home data-cat="SACOS & CAMPERAS"><img src="/static/img/banner-1.jpg?v={{v}}" alt="Sacos y camperas" loading="lazy"><span class="banner-cap"><b>SACOS &amp; CAMPERAS</b><u>QUIERO VER</u></span></a>
+    <a class="banner" href="/#tienda" data-home data-cat="PANTALONES"><img src="/static/img/banner-2.jpg?v={{v}}" alt="Pantalones" loading="lazy"><span class="banner-cap"><b>PANTALONES</b><u>QUIERO VER</u></span></a>
+  </section>
+
+  <section class="shop" id="tienda">
+    <nav class="crumbs" id="shopCrumbs"><a href="/" data-home data-cat="">Inicio</a><span>.</span><b id="crumbCurrent">Novedades</b></nav>
+    <div class="shop-layout">
+      <aside class="side" id="side">
+        <div class="side-head"><h3>Filtros</h3><button class="icon-btn" id="sideClose" aria-label="Cerrar">×</button></div>
+        <h4 id="sideTitle">Categorías</h4>
+        <ul class="side-list" id="sideCats"></ul>
+        <h4>Filtrar por</h4>
+        <div class="side-group"><h5>Talle</h5><ul class="side-checks" id="sideSizes"></ul></div>
+        <div class="side-group"><h5>Precio</h5><ul class="side-checks" id="sidePrices">
+          <li><label><input type="checkbox" value="0-100000"> Hasta $100.000</label></li>
+          <li><label><input type="checkbox" value="100000-300000"> $100.000 a $300.000</label></li>
+          <li><label><input type="checkbox" value="300000-99999999"> Más de $300.000</label></li>
+        </ul></div>
+        <div class="side-foot"><button type="button" class="btn btn-primary btn-block" id="sideApply">Ver resultados</button><button type="button" class="link" id="sideClear">Limpiar filtros</button></div>
+      </aside>
+      <div class="side-backdrop" id="sideBackdrop" hidden></div>
+      <div class="shop-main">
+        <div class="shop-head"><h1 id="shopTitle">Novedades</h1>
+          <button class="filters-btn" id="filtersBtn" type="button"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M3 6h18M6 12h12M10 18h4"/></svg> Filtros<span id="filtersCount" hidden></span></button>
+          <label class="sort">Ordenar por <select id="sortSel"><option value="featured">Destacado</option><option value="price-asc">Precio: menor a mayor</option><option value="price-desc">Precio: mayor a menor</option><option value="az">A - Z</option><option value="za">Z - A</option></select></label></div>
+        <div class="grid" id="grid"></div>
+        <p class="grid-empty" id="gridEmpty" hidden>No hay prendas con esos filtros.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="about" id="nosotras">
+    <div class="about-img"><img src="/static/img/editorial-1.jpg?v={{v}}" alt="Lopiana Clothes" loading="lazy"></div>
+    <div class="about-copy">
+      <h2>Nosotras</h2>
+      <p>Cada prenda de Lopiana se interviene a mano: bordados, cadenas, strass de vidrio, guipur, macramé. No hay dos iguales. Trabajamos con cita en nuestro showroom de Villa Devoto y enviamos a todo el país.</p>
+      <a class="btn" id="igLink" href="#" target="_blank" rel="noopener">Seguinos en Instagram</a>
+    </div>
+  </section>
+
+  <section class="how" id="como-comprar">
+    <h2>Cómo comprar</h2>
+    <div class="steps">
+      <div class="step"><span>01</span><h4>Elegís</h4><p>Abrís la prenda, marcás el talle y la agregás al carrito.</p></div>
+      <div class="step"><span>02</span><h4>Nos escribís</h4><p>Desde el carrito se arma el mensaje de WhatsApp con tu pedido. Solo lo enviás.</p></div>
+      <div class="step"><span>03</span><h4>Coordinamos</h4><p>Te confirmamos, elegís cómo pagar y la recibís en casa o la retirás en Devoto.</p></div>
+    </div>
+  </section>
+
+</div>
+
+<!-- Página de producto -->
+<section class="pdp" id="pdp" hidden>
+  <div class="pdp-grid">
+    <div class="gallery">
+      <div class="gallery-thumbs" id="galleryThumbs"></div>
+      <div class="gallery-main"><img id="galleryMain" src="" alt=""></div>
+    </div>
+    <div class="details">
+      <nav class="crumbs"><a href="/" data-home data-cat="">Inicio</a><span>.</span><a href="/#tienda" id="crumbCat" data-home></a><span>.</span><b id="crumbName"></b></nav>
+      <h1 id="pName"></h1>
+      <div class="prices">
+        <span class="price-main" id="pTransfer"></span>
+        <small class="price-note"><span id="pPctNote">30</span>% OFF con transferencia o efectivo · precio de lista <s id="pList"></s></small>
+      </div>
+      <p class="ship-note"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 7h11v9H3zM14 10h4l3 3v3h-7z"/><circle cx="7" cy="17" r="1.5"/><circle cx="17" cy="17" r="1.5"/></svg> Envío gratis a CABA · envíos a todo el país</p>
+      <div class="field" id="colorField" hidden>
+        <div class="field-label"><span>Color</span><span class="stock-hint" id="colorName"></span></div>
+        <div class="colors" id="colors"></div>
+      </div>
+      <div class="field" id="sizeField">
+        <div class="field-label"><span>Talle</span><span class="stock-hint" id="stockHint"></span></div>
+        <div class="sizes" id="sizes"></div>
+        <button type="button" class="chart-link" id="chartLink" hidden>
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="16" rx="1.5"/><path d="M3 9h18M3 14.5h18M9 4v16"/></svg>
+          Ver tabla de talles
+        </button>
+      </div>
+      <div class="field qty-field">
+        <div class="field-label"><span>Cantidad</span></div>
+        <div class="qty"><button type="button" id="qtyMinus" aria-label="Menos">−</button><span id="qtyVal">1</span><button type="button" id="qtyPlus" aria-label="Más">+</button></div>
+      </div>
+      <button class="btn btn-primary btn-block" id="addBtn">Agregar al carrito</button>
+      <p class="added-msg" id="addedMsg" hidden>Agregado al carrito ✓</p>
+      <div class="acc">
+        <details><summary><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="6" width="18" height="12" rx="1"/><path d="M3 10h18"/></svg> Medios de pago</summary><div><p><b><span id="accPct">30</span>% OFF</b> abonando por transferencia bancaria o en efectivo. Otros medios de pago al precio de lista. Lo coordinamos por WhatsApp al confirmar el pedido.</p></div></details>
+        <details><summary><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 7h11v9H3zM14 10h4l3 3v3h-7z"/><circle cx="7" cy="17" r="1.5"/><circle cx="17" cy="17" r="1.5"/></svg> Medios de envío</summary><div><p>Envío <b>gratis en CABA</b>. Al interior del país por correo: te pasamos el costo por WhatsApp según tu localidad.</p></div></details>
+        <details><summary><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 21V9l8-5 8 5v12"/><path d="M9 21v-6h6v6"/></svg> Nuestro showroom</summary><div><p id="accAddress"></p><p>Atendemos con cita previa. Escribinos para coordinar.</p></div></details>
+      </div>
+      <p class="desc" id="pDesc"></p>
+      <div class="share"><a id="askBtn" href="#" target="_blank" rel="noopener">Consultar por WhatsApp</a><button type="button" id="copyLink">Copiar link</button></div>
+    </div>
+  </div>
+  <div class="related" id="related"><h3>También te puede gustar</h3><div class="grid grid-4" id="relatedGrid"></div></div>
+  <div class="buybar" id="buybar">
+    <div class="buybar-info"><b id="barPrice"></b><small id="barNote">Elegí tu talle</small></div>
+    <button class="btn btn-primary" id="barAdd">Agregar</button>
+  </div>
+</section>
+
+<!-- Tabla de talles -->
+<div class="sheet-backdrop" id="chartBackdrop" hidden></div>
+<div class="sheet" id="chartSheet" aria-hidden="true">
+  <div class="sheet-head"><h3>Tabla de talles</h3><button class="icon-btn" id="chartClose" aria-label="Cerrar">×</button></div>
+  <div class="sheet-body">
+    <img id="chartImg" src="" alt="Tabla de talles">
+    <p class="muted" id="chartNote"></p>
+  </div>
+</div>
+
+</main>
+
+<footer class="footer" id="contacto">
+  <div class="footer-grid">
+    <div>
+      <h5>Suscribite a nuestro newsletter</h5>
+      <form class="newsletter" id="newsForm"><input type="email" id="newsEmail" placeholder="Email" required><button type="submit" aria-label="Suscribirme">→</button></form>
+      <p class="news-ok" id="newsOk" hidden>¡Listo! Te avisamos cuando entren prendas nuevas.</p>
+    </div>
+    <div><h5>Categorías</h5><ul id="footerCats"></ul></div>
+    <div>
+      <h5>Contactanos</h5>
+      <ul class="contact">
+        <li><a id="fWa" href="#" target="_blank" rel="noopener"><span id="fWaText"></span></a></li>
+        <li><a id="fMail" href="#"><span id="fMailText"></span></a></li>
+        <li><span id="fAddress"></span></li>
+        <li><a id="fIg" href="#" target="_blank" rel="noopener">Instagram</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="legal"><p>Copyright Lopiana Clothes - <span id="year"></span>. Todos los derechos reservados.</p><p><a href="https://www.argentina.gob.ar/defensadelconsumidor" target="_blank" rel="noopener">Defensa de las y los consumidores.</a> Para reclamos escribinos por <a id="fWa2" href="#" target="_blank" rel="noopener">WhatsApp</a>.</p></div>
+</footer>
+
+<a class="wa-float" id="waFloat" href="#" target="_blank" rel="noopener" aria-label="WhatsApp">
+  <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.3-.4.7-1.3.1-.2 0-.3 0-.5l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.8c.1.2 1.9 2.9 4.6 4.1 1.7.7 2.4.8 3.2.7.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2-.1-.2-.3-.2-.5-.3z"/></svg>
+</a>
+
+<!-- Carrito -->
+<div class="drawer-backdrop" id="drawerBackdrop" hidden></div>
+<aside class="drawer" id="drawer" aria-hidden="true">
+  <div class="drawer-head"><h3>Carrito</h3><button class="icon-btn" id="drawerClose" aria-label="Cerrar">×</button></div>
+  <div class="drawer-body" id="drawerBody">
+    <div class="cart-empty" id="cartEmpty"><p>Tu carrito está vacío.</p><a class="btn btn-primary" href="/#tienda" id="emptyGo" data-home>Ver prendas</a></div>
+    <div id="cartItems" class="cart-items"></div>
+    <form id="checkoutForm" class="checkout" hidden>
+      <div class="summary">
+        <div><span>Precio de lista</span><s id="sumList"></s></div>
+        <div class="summary-total"><span>Total <small id="sumLabel">con transferencia</small></span><b id="sumTotal"></b></div>
+      </div>
+      <label class="input"><span>Tu nombre</span><input id="cName" type="text" maxlength="80" placeholder="Para identificar tu pedido" autocomplete="name"></label>
+      <label class="input"><span>Teléfono <small>(opcional)</small></span><input id="cPhone" type="tel" maxlength="40" placeholder="11 ..." autocomplete="tel"></label>
+      <div class="pay">
+        <span class="field-label">¿Cómo vas a pagar?</span>
+        <label><input type="radio" name="pay" value="transferencia" checked> Transferencia <em id="payPct1">-30%</em></label>
+        <label><input type="radio" name="pay" value="efectivo"> Efectivo <em id="payPct2">-30%</em></label>
+        <label><input type="radio" name="pay" value="otro"> Lo definimos por WhatsApp</label>
+      </div>
+      <p class="err" id="checkoutErr" hidden></p>
+      <button class="btn btn-wa btn-block" type="submit" id="checkoutBtn">Finalizar por WhatsApp</button>
+      <p class="fine">Al tocar el botón se reserva tu pedido y se abre WhatsApp con el mensaje armado. No se cobra nada acá.</p>
+    </form>
+    <div class="done" id="checkoutDone" hidden>
+      <div class="done-check">✓</div>
+      <h4>Pedido <span id="doneCode"></span> reservado</h4>
+      <p>Te guardamos la prenda. Si WhatsApp no se abrió solo, tocá el botón.</p>
+      <a class="btn btn-wa btn-block" id="doneWa" href="#" target="_blank" rel="noopener">Abrir WhatsApp</a>
+      <button class="btn" id="doneClose" type="button">Seguir mirando</button>
+    </div>
+  </div>
+</aside>
+
+<div class="toast" id="toast" hidden></div>
+<script src="/static/js/site.js?v={{v}}"></script>
+</body>
+</html>

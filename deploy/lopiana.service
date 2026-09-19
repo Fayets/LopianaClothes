@@ -1,0 +1,28 @@
+# Copiar a /etc/systemd/system/lopiana.service y luego:
+#   systemctl daemon-reload && systemctl enable --now lopiana
+# Con esto la tienda vuelve sola si el proceso muere o si se reinicia el VPS.
+
+[Unit]
+Description=Lopiana Clothes
+After=network.target
+
+[Service]
+Type=simple
+User=lopiana
+WorkingDirectory=/srv/lopiana
+EnvironmentFile=/srv/lopiana/.env
+ExecStart=/srv/lopiana/.venv/bin/python -m uvicorn app.main:app \
+    --host 127.0.0.1 --port 8020 \
+    --proxy-headers --forwarded-allow-ips="127.0.0.1"
+Restart=always
+RestartSec=3
+
+# La app solo necesita escribir en data/ y media/: el resto del disco va de solo lectura.
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/srv/lopiana/data /srv/lopiana/media
+
+[Install]
+WantedBy=multi-user.target

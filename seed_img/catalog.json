@@ -1,0 +1,144 @@
+[
+ {
+  "slug": "campera-piu-cadenas",
+  "name": "CAMPERA PIU",
+  "category": "SACOS & CAMPERAS",
+  "price": 490000,
+  "transfer_price": 343000,
+  "description": "Campera de piu importado, intervenida a mano con cadenas y hojas de metal en el hombro. Prenda única, realizada de forma artesanal. Corte biker, cierre frontal y bolsillos con cierre.",
+  "sizes": [
+   [
+    "S",
+    1
+   ],
+   [
+    "M",
+    2
+   ],
+   [
+    "L",
+    1
+   ]
+  ],
+  "images": [
+   "campera-piu-cadenas-1.jpg"
+  ]
+ },
+ {
+  "slug": "campera-wedding",
+  "name": "CAMPERA WEDDING",
+  "category": "SACOS & CAMPERAS",
+  "price": 490000,
+  "transfer_price": 343000,
+  "description": "Campera biker blanca con cuello de piel sintética, hombros acolchados y cierres metálicos. Prenda única, hecha a mano.",
+  "sizes": [
+   [
+    "S",
+    1
+   ],
+   [
+    "M",
+    1
+   ]
+  ],
+  "images": [
+   "campera-wedding-1.jpg"
+  ]
+ },
+ {
+  "slug": "saco-sar",
+  "name": "SACO SAR",
+  "category": "SACOS & CAMPERAS",
+  "price": 850000,
+  "transfer_price": 595000,
+  "description": "Saco negro con espalda de macramé tejida a mano y flecos. Una pieza de alta costura artesanal: la espalda se teje completa sobre la prenda.",
+  "sizes": [
+   [
+    "M",
+    1
+   ]
+  ],
+  "images": [
+   "saco-sar-1.jpg"
+  ]
+ },
+ {
+  "slug": "jean-depiurshine",
+  "name": "JEAN DEPIURSHINE",
+  "category": "PANTALONES",
+  "price": 290000,
+  "transfer_price": 203000,
+  "description": "Jean de tiro alto intervenido a mano con guipur y strass de vidrio en la pierna. Cada aplicación se cose una por una: no hay dos iguales.",
+  "sizes": [
+   [
+    "36",
+    1
+   ],
+   [
+    "38",
+    1
+   ],
+   [
+    "40",
+    1
+   ],
+   [
+    "42",
+    0
+   ]
+  ],
+  "images": [
+   "jean-depiurshine-1.jpg"
+  ]
+ },
+ {
+  "slug": "jean-sold-out",
+  "name": "JEAN SOLD OUT",
+  "category": "PANTALONES",
+  "price": 170000,
+  "transfer_price": 119000,
+  "description": "Jean wide leg bordado a mano con estrellas de strass y el Principito. Tiro alto, pierna amplia. Pieza única.",
+  "sizes": [
+   [
+    "36",
+    1
+   ],
+   [
+    "38",
+    2
+   ],
+   [
+    "40",
+    1
+   ]
+  ],
+  "images": [
+   "jean-sold-out-1.jpg"
+  ]
+ },
+ {
+  "slug": "camisa-ras-blanca",
+  "name": "CAMISA RAS · BLANCA",
+  "category": "TOPS",
+  "price": 68000,
+  "transfer_price": 47600,
+  "description": "Camisa blanca con bordados a mano y moño al cuello. También en azul y negra, consultá por WhatsApp.",
+  "sizes": [
+   [
+    "S",
+    1
+   ],
+   [
+    "M",
+    1
+   ],
+   [
+    "L",
+    1
+   ]
+  ],
+  "images": [
+   "camisa-ras-blanca-1.jpg"
+  ]
+ }
+]

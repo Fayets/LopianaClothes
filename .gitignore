@@ -1,0 +1,12 @@
+# Lo que vive solo en el servidor: pedidos, stock y fotos de la clienta.
+data/
+media/products/
+media/originals/
+
+# Configuración con el PIN y los dominios. Nunca al repositorio.
+.env
+
+.venv/
+__pycache__/
+*.pyc
+.DS_Store
