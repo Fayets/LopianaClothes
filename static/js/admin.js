@@ -14,6 +14,15 @@
   }
 
   let days = 30, month = null, statusFilter = "", products = [], editing = null, settingsCache = {}, cats = [];
+  // Las fotos se guardan bajo el id del producto, que en una prenda nueva todavía no
+  // existe. En vez de obligar a guardar primero, quedan acá en espera con una vista
+  // previa local y se suben solas apenas la prenda se crea.
+  let pendientes = { fotos: [], tabla: null };
+  const soltarPendientes = () => {
+    pendientes.fotos.forEach(f => URL.revokeObjectURL(f.preview));
+    if (pendientes.tabla) URL.revokeObjectURL(pendientes.tabla.preview);
+    pendientes = { fotos: [], tabla: null };
+  };
   const MESES = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
 
   // ---------------- login
@@ -152,14 +161,15 @@
     f.description.value = p ? p.description : ""; f.active.checked = p ? !!p.active : true;
     $("#sizesRows").innerHTML = ""; (p ? p.sizes : [{ size: "S", stock: 1 }, { size: "M", stock: 1 }, { size: "L", stock: 1 }]).forEach(s => $("#sizesRows").appendChild(sizeRow(s.size, s.stock)));
     $("#colorRows").innerHTML = ""; (p ? p.colors : []).forEach(c => $("#colorRows").appendChild(colorRow(c.name, c.hex)));
+    soltarPendientes();
     $("#deleteProduct").hidden = !p; $("#editorErr").hidden = true; $("#uploadStatus").hidden = true;
-    $("#drop").hidden = !p; $("#noImgs").hidden = !!p; $("#chartEd").hidden = !p;
+    $("#drop").hidden = false; $("#noImgs").hidden = true; $("#chartEd").hidden = false;
     $$('input[name="imgmode"]').forEach(r => r.checked = r.value === (settingsCache.image_mode || "cover"));
     renderThumbs(); renderChart();
     $("#editor").hidden = false; $("#editorBackdrop").hidden = false;
     document.body.classList.add("modal-open");
   }
-  function closeEditor() { $("#editor").hidden = true; $("#editorBackdrop").hidden = true; document.body.classList.remove("modal-open"); editing = null; loadProducts(); }
+  function closeEditor() { soltarPendientes(); $("#editor").hidden = true; $("#editorBackdrop").hidden = true; document.body.classList.remove("modal-open"); editing = null; loadProducts(); }
   $("#editorClose").onclick = closeEditor; $("#editorBackdrop").onclick = closeEditor;
 
   function collect() {
@@ -172,13 +182,38 @@
     e.preventDefault(); $("#editorErr").hidden = true;
     try {
       const body = JSON.stringify(collect());
+      const btn = $("#saveProduct"); btn.disabled = true;
       const saved = editing ? await api(`/api/admin/products/${editing.id}`, { method: "PUT", body }) : await api("/api/admin/products", { method: "POST", body });
       const isNew = !editing; editing = saved; $("#editorTitle").textContent = saved.name;
-      $("#deleteProduct").hidden = false; $("#drop").hidden = false; $("#noImgs").hidden = true; $("#chartEd").hidden = false; renderChart();
-      toast(isNew ? "Prenda creada. Ahora subile fotos." : "Guardado");
-      if (!isNew) closeEditor();
-    } catch (ex) { $("#editorErr").textContent = ex.message; $("#editorErr").hidden = false; }
+      $("#deleteProduct").hidden = false;
+      const subidas = await subirPendientes();
+      btn.disabled = false;
+      toast(isNew ? (subidas ? `Prenda creada con ${subidas} foto${subidas === 1 ? "" : "s"}` : "Prenda creada") : "Guardado");
+      closeEditor();
+    } catch (ex) { $("#saveProduct").disabled = false; $("#editorErr").textContent = ex.message; $("#editorErr").hidden = false; }
   };
+
+  async function subirPendientes() {
+    if (!editing) return 0;
+    let n = 0;
+    if (pendientes.fotos.length) {
+      const st = $("#uploadStatus"); st.hidden = false;
+      st.textContent = `Subiendo ${pendientes.fotos.length} foto${pendientes.fotos.length > 1 ? "s" : ""}...`;
+      const fd = new FormData();
+      pendientes.fotos.forEach(f => fd.append("files", f.file));
+      fd.append("mode", pendientes.fotos[0].mode);
+      const out = await api(`/api/admin/products/${editing.id}/images`, { method: "POST", body: fd });
+      editing.images.push(...out); n += out.length;
+    }
+    if (pendientes.tabla) {
+      $("#uploadStatus").hidden = false; $("#uploadStatus").textContent = "Subiendo la tabla de talles...";
+      const fd = new FormData(); fd.append("file", pendientes.tabla.file);
+      editing = await api(`/api/admin/products/${editing.id}/size-chart`, { method: "POST", body: fd }); n += 1;
+    }
+    soltarPendientes();
+    return n;
+  }
+
   $("#deleteProduct").onclick = async () => {
     if (!editing || !confirm(`¿Eliminar "${editing.name}" con sus fotos? No se puede deshacer.`)) return;
     await api(`/api/admin/products/${editing.id}`, { method: "DELETE" }); toast("Prenda eliminada"); closeEditor();
@@ -187,13 +222,22 @@
   // fotos
   function renderThumbs() {
     const wrap = $("#imgThumbs"); wrap.innerHTML = "";
-    if (!editing) return;
+    editing ? thumbsGuardadas(wrap) : thumbsPendientes(wrap);
+  }
+
+  function marco(html, principal) {
+    const d = document.createElement("div");
+    d.className = "th" + (principal ? " is-main" : "");
+    d.innerHTML = html;
+    return d;
+  }
+
+  function thumbsGuardadas(wrap) {
     editing.images.forEach((im, i) => {
-      const d = document.createElement("div"); d.className = "th" + (i === 0 ? " is-main" : "");
-      d.innerHTML = `<img src="${im.thumb_url}?v=${Date.now()}" alt="">
+      const d = marco(`<img src="${im.thumb_url}?v=${Date.now()}" alt="">
         ${i === 0 ? '<span class="first">Principal</span>' : '<button type="button" class="mk">Hacer principal</button>'}
         <div class="tb"><button type="button" data-mv="-1" title="Mover antes">←</button><button type="button" class="del" title="Borrar">borrar</button><button type="button" data-mv="1" title="Mover después">→</button></div>
-        <button type="button" class="re">reprocesar: encajar completa</button>`;
+        <button type="button" class="re">reprocesar: encajar completa</button>`, i === 0);
       const mk = d.querySelector(".mk");
       if (mk) mk.onclick = async () => { editing = await api(`/api/admin/images/${im.id}/main`, { method: "PUT" }); renderThumbs(); toast("Foto principal actualizada"); };
       d.querySelector(".del").onclick = async () => { if (!confirm("¿Borrar esta foto?")) return; await api(`/api/admin/images/${im.id}`, { method: "DELETE" }); editing.images.splice(i, 1); renderThumbs(); };
@@ -204,14 +248,38 @@
     });
   }
 
+  // Todavía no hay prenda, así que las fotos viven en el navegador: se ven, se ordenan y
+  // se elige la principal igual, y recién al guardar viajan al servidor.
+  function thumbsPendientes(wrap) {
+    pendientes.fotos.forEach((f, i) => {
+      const d = marco(`<img src="${f.preview}" alt="">
+        ${i === 0 ? '<span class="first">Principal</span>' : '<button type="button" class="mk">Hacer principal</button>'}
+        <div class="tb"><button type="button" data-mv="-1" title="Mover antes">←</button><button type="button" class="del" title="Quitar">quitar</button><button type="button" data-mv="1" title="Mover después">→</button></div>
+        <span class="pend">se sube al guardar</span>`, i === 0);
+      const mk = d.querySelector(".mk");
+      if (mk) mk.onclick = () => { pendientes.fotos.unshift(pendientes.fotos.splice(i, 1)[0]); renderThumbs(); };
+      d.querySelector(".del").onclick = () => { URL.revokeObjectURL(f.preview); pendientes.fotos.splice(i, 1); renderThumbs(); };
+      d.querySelectorAll("[data-mv]").forEach(b => b.onclick = () => { const j = i + +b.dataset.mv; if (j < 0 || j >= pendientes.fotos.length) return; [pendientes.fotos[i], pendientes.fotos[j]] = [pendientes.fotos[j], pendientes.fotos[i]]; renderThumbs(); });
+      wrap.appendChild(d);
+    });
+  }
+
   // tabla de talles
   function renderChart() {
-    const has = editing && editing.size_chart;
-    $("#chartImg").hidden = !has; $("#chartEmpty").hidden = !!has; $("#chartActs").hidden = !has;
-    if (has) $("#chartImg").src = editing.size_chart.url + "?v=" + Date.now();
+    const guardada = editing && editing.size_chart;
+    const hay = guardada || pendientes.tabla;
+    $("#chartImg").hidden = !hay; $("#chartEmpty").hidden = !!hay; $("#chartActs").hidden = !hay;
+    if (guardada) $("#chartImg").src = editing.size_chart.url + "?v=" + Date.now();
+    else if (pendientes.tabla) $("#chartImg").src = pendientes.tabla.preview;
   }
   async function uploadChart(file) {
-    if (!editing || !file) return;
+    if (!file) return;
+    if (!editing) {   // queda en espera hasta que la prenda exista
+      if (pendientes.tabla) URL.revokeObjectURL(pendientes.tabla.preview);
+      pendientes.tabla = { file, preview: URL.createObjectURL(file) };
+      renderChart(); $("#uploadStatus").hidden = false; $("#uploadStatus").textContent = "Tabla de talles lista: se sube al guardar.";
+      return;
+    }
     const st = $("#uploadStatus"); st.hidden = false; st.textContent = "Subiendo la tabla de talles...";
     const fd = new FormData(); fd.append("file", file);
     try { editing = await api(`/api/admin/products/${editing.id}/size-chart`, { method: "POST", body: fd }); renderChart(); st.textContent = `Tabla de talles lista (${editing.size_chart.width}×${editing.size_chart.height})`; }
@@ -221,9 +289,35 @@
   $("#replaceChart").onclick = () => $("#chartInput").click();
   $("#chartInput").onchange = (e) => { uploadChart(e.target.files[0]); e.target.value = ""; };
   $("#removeChart").onclick = async () => {
-    if (!editing || !confirm("¿Quitar la tabla de talles de esta prenda?")) return;
+    if (!editing) { if (pendientes.tabla) { URL.revokeObjectURL(pendientes.tabla.preview); pendientes.tabla = null; renderChart(); } return; }
+    if (!confirm("¿Quitar la tabla de talles de esta prenda?")) return;
     editing = await api(`/api/admin/products/${editing.id}/size-chart`, { method: "DELETE" }); renderChart(); toast("Tabla de talles quitada");
   };
+
+  // Gemela de uploadChart pero para la galería: varias fotos de una, y si la prenda
+  // todavía no existe quedan en espera con vista previa hasta que se guarde.
+  async function upload(lista) {
+    const files = [...(lista || [])].filter(f => !f.type || f.type.startsWith("image/"));
+    if (!files.length) return;
+    const plural = (n) => `${n} foto${n === 1 ? "" : "s"}`;
+    const mode = ($$('input[name="imgmode"]').find(r => r.checked) || {}).value || settingsCache.image_mode || "cover";
+    const st = $("#uploadStatus"); st.hidden = false;
+    if (!editing) {   // quedan en espera hasta que la prenda exista
+      files.forEach(f => pendientes.fotos.push({ file: f, preview: URL.createObjectURL(f), mode }));
+      renderThumbs();
+      st.textContent = `${plural(pendientes.fotos.length)} en espera: se suben al guardar.`;
+      return;
+    }
+    st.textContent = `Subiendo ${plural(files.length)}...`;
+    const fd = new FormData();
+    files.forEach(f => fd.append("files", f));
+    fd.append("mode", mode);
+    try {
+      const out = await api(`/api/admin/products/${editing.id}/images`, { method: "POST", body: fd });
+      editing.images.push(...out); renderThumbs();
+      st.textContent = `${plural(out.length)} subida${out.length === 1 ? "" : "s"}`;
+    } catch (ex) { st.textContent = "Error: " + ex.message; }
+  }
 
   $("#pickFiles").onclick = () => $("#fileInput").click();
   $("#fileInput").onchange = (e) => { upload(e.target.files); e.target.value = ""; };
